@@ -15,12 +15,18 @@ const regName = document.getElementById('regName');
 const regPwd = document.getElementById('regPwd');
 let loginUser = null;
 
-// 搜索全局变量
-let currentSearchType = "game";
+// ========== 搜索模块全局变量（全屏覆盖版） ==========
+// 首页搜索入口
 const searchInput = document.getElementById("searchInput");
 const searchBtn = document.getElementById("searchBtn");
-const searchResultBox = document.getElementById("searchResultBox");
-const searchTabs = document.querySelectorAll(".search-tab");
+// 全屏搜索结果层
+const searchPageOverlay = document.getElementById("searchPageOverlay");
+const searchInputOverlay = document.getElementById("searchInputOverlay");
+const searchBtnOverlay = document.getElementById("searchBtnOverlay");
+const searchResultBoxOverlay = document.getElementById("searchResultBoxOverlay");
+const searchTabsOverlay = document.querySelectorAll(".search-page-overlay .search-tab");
+const closeSearchPage = document.getElementById("closeSearchPage");
+let currentSearchType = "game";
 
 // 用户数据
 function getUserList(){
@@ -648,54 +654,73 @@ function renderOtherPost(userName){
     })
 }
 
-// ====================== 搜索功能核心逻辑 ======================
-// 切换搜索标签
-searchTabs.forEach(tab=>{
-    tab.onclick = function(){
-        searchTabs.forEach(t=>t.classList.remove('active'));
-        this.classList.add('active');
-        currentSearchType = this.dataset.type;
-        // 已有关键词自动重新搜索
-        const key = searchInput.value.trim();
-        if(key) doSearch(key);
-        else searchResultBox.innerHTML = "";
-    }
-})
-// 点击搜索按钮
+// ====================== 全屏搜索页面交互逻辑 ======================
+// 打开全屏搜索层
+function openSearchPage() {
+    searchPageOverlay.style.display = "flex";
+    searchInputOverlay.value = searchInput.value.trim();
+    searchInputOverlay.focus();
+    const key = searchInputOverlay.value.trim();
+    if (key) doSearchOverlay(key);
+}
+// 关闭全屏搜索层
+function closeSearchPageFunc() {
+    searchPageOverlay.style.display = "none";
+    searchResultBoxOverlay.innerHTML = "";
+    searchInputOverlay.value = "";
+}
+// 首页搜索按钮点击
 searchBtn.onclick = function(){
-    const key = searchInput.value.trim();
+    openSearchPage();
+}
+searchInput.onkeydown = function(e){
+    if(e.key === "Enter") openSearchPage();
+}
+// 关闭搜索按钮
+closeSearchPage.onclick = closeSearchPageFunc;
+// 搜索层内搜索按钮
+searchBtnOverlay.onclick = function(){
+    const key = searchInputOverlay.value.trim();
     if(!key){
-        searchResultBox.innerHTML = "<div style='color:#aaa;'>请输入搜索关键词</div>";
+        searchResultBoxOverlay.innerHTML = "<div style='color:#aaa;'>请输入搜索关键词</div>";
         return;
     }
-    doSearch(key);
+    doSearchOverlay(key);
 }
-// 回车触发搜索
-searchInput.onkeydown = function(e){
+searchInputOverlay.onkeydown = function(e){
     if(e.key === "Enter"){
-        const key = searchInput.value.trim();
+        const key = searchInputOverlay.value.trim();
         if(!key){
-            searchResultBox.innerHTML = "<div style='color:#aaa;'>请输入搜索关键词</div>";
+            searchResultBoxOverlay.innerHTML = "<div style='color:#aaa;'>请输入搜索关键词</div>";
             return;
         }
-        doSearch(key);
+        doSearchOverlay(key);
     }
 }
-// 执行搜索
-function doSearch(keyword){
+// 搜索分类标签切换
+searchTabsOverlay.forEach(tab=>{
+    tab.onclick = function(){
+        searchTabsOverlay.forEach(t=>t.classList.remove('active'));
+        this.classList.add('active');
+        currentSearchType = this.dataset.type;
+        const key = searchInputOverlay.value.trim();
+        if(key) doSearchOverlay(key);
+        else searchResultBoxOverlay.innerHTML = "";
+    }
+})
+// 执行搜索（全屏层专用）
+function doSearchOverlay(keyword){
     const key = keyword.toLowerCase();
-    searchResultBox.innerHTML = "";
+    searchResultBoxOverlay.innerHTML = "";
     if(currentSearchType === "game"){
-        // 搜索游戏：匹配名称
         const gameList = getGameList().filter(g=>g.name.toLowerCase().includes(key));
         if(gameList.length === 0){
-            searchResultBox.innerHTML = "<div style='color:#aaa;'>未找到相关游戏</div>";
+            searchResultBoxOverlay.innerHTML = "<div style='color:#aaa;'>未找到相关游戏</div>";
             return;
         }
         gameList.forEach(game=>{
             const item = document.createElement("div");
             item.className = "search-item";
-            // target="_blank" 新标签打开
             item.innerHTML = `
                 <div style="font-size:17px;font-weight:bold;">${game.name}</div>
                 <div style="font-size:13px;color:#aaa;">发布者：${game.author}</div>
@@ -704,13 +729,12 @@ function doSearch(keyword){
                 const newTab = window.open();
                 newTab.document.write(`<iframe style="width:100%;height:100vh;border:none;" src="${game.url}"></iframe>`);
             }
-            searchResultBox.appendChild(item);
+            searchResultBoxOverlay.appendChild(item);
         })
     }else if(currentSearchType === "post"){
-        // 搜索帖子：匹配内容/发布用户名
         const postList = getPostList().filter(p=>p.content.toLowerCase().includes(key) || p.user.toLowerCase().includes(key));
         if(postList.length === 0){
-            searchResultBox.innerHTML = "<div style='color:#aaa;'>未找到相关帖子</div>";
+            searchResultBoxOverlay.innerHTML = "<div style='color:#aaa;'>未找到相关帖子</div>";
             return;
         }
         postList.forEach(post=>{
@@ -720,20 +744,19 @@ function doSearch(keyword){
                 <div style="font-size:17px;font-weight:bold;">帖子（发布者：${post.user}）</div>
                 <div style="font-size:13px;color:#aaa;">${post.content.slice(0,80)}${post.content.length>80?"...":""}</div>
             `;
-            // 新标签打开论坛页面并定位帖子（简化新开页面）
             item.onclick = ()=>{
+                closeSearchPageFunc();
                 const newTab = window.open(location.href);
                 newTab.onload = function(){
                     newTab.document.querySelector('[data-page="forum"]').click();
                 }
             }
-            searchResultBox.appendChild(item);
+            searchResultBoxOverlay.appendChild(item);
         })
     }else if(currentSearchType === "user"){
-        // 搜索用户：匹配用户名
         const userList = getUserList().filter(u=>u.name.toLowerCase().includes(key));
         if(userList.length === 0){
-            searchResultBox.innerHTML = "<div style='color:#aaa;'>未找到相关用户</div>";
+            searchResultBoxOverlay.innerHTML = "<div style='color:#aaa;'>未找到相关用户</div>";
             return;
         }
         userList.forEach(user=>{
@@ -743,13 +766,15 @@ function doSearch(keyword){
                 <div class="search-user-name">${user.name} ${user.isAdmin?"【管理员】":""}</div>
                 <div style="font-size:13px;color:#aaa;">点击查看该用户主页</div>
             `;
-            // 点击跳转当前页面进入他人主页
-            item.onclick = ()=> openOtherUserPage(user.name);
-            searchResultBox.appendChild(item);
+            item.onclick = ()=>{
+                closeSearchPageFunc();
+                openOtherUserPage(user.name);
+            }
+            searchResultBoxOverlay.appendChild(item);
         })
     }
 }
 
-// 初始化
+// 初始化页面
 updateUserUI();
 renderGame();

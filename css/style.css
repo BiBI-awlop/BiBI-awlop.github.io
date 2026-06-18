@@ -31,13 +31,13 @@ body {
 .reg-btn{background:#34c759;color:#000;}
 .logout-btn{background:#ff4757;color:#fff;display:none;}
 
-/* 搜索模块 新增 */
+/* 首页搜索模块 */
 .search-wrap{
     display:flex;
     gap:8px;
     margin-bottom:12px;
 }
-#searchInput{
+#searchInput, #searchInputOverlay{
     flex:1;
     padding:10px 14px;
     border-radius:6px;
@@ -45,7 +45,7 @@ body {
     font-size:15px;
     color:#000;
 }
-#searchBtn{
+#searchBtn, #searchBtnOverlay{
     padding:0 22px;
     background:#00d4ff;
     border:none;
@@ -90,6 +90,46 @@ body {
     color:#00d4ff;
     font-size:16px;
     font-weight:bold;
+}
+
+/* 全屏搜索结果覆盖层（核心优化样式） */
+.search-page-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #1a1a2e;
+    z-index: 900;
+    padding: 20px 30px;
+    display: none;
+    flex-direction: column;
+}
+.search-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+.search-page-header h2 {
+    color: #00d4ff;
+    font-size: 24px;
+}
+.search-page-close {
+    background: #ff4757;
+    border: none;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.search-page-close:hover {
+    background: #ff6b77;
+}
+.search-page-overlay .search-result-wrap {
+    flex: 1;
+    overflow-y: auto;
 }
 
 /* 主导航 */

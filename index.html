@@ -7,6 +7,24 @@
     <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
+<!-- 全屏搜索结果覆盖层（点击搜索后仅显示这个，遮挡原有页面） -->
+<div class="search-page-overlay" id="searchPageOverlay">
+    <div class="search-page-header">
+        <h2>搜索结果</h2>
+        <button class="search-page-close" id="closeSearchPage">关闭搜索</button>
+    </div>
+    <div class="search-wrap">
+        <input type="text" id="searchInputOverlay" placeholder="搜索游戏、帖子、用户" />
+        <button id="searchBtnOverlay">搜索</button>
+    </div>
+    <div class="search-tab-wrap">
+        <button class="search-tab active" data-type="game">游戏</button>
+        <button class="search-tab" data-type="post">帖子</button>
+        <button class="search-tab" data-type="user">用户</button>
+    </div>
+    <div class="search-result-wrap" id="searchResultBoxOverlay"></div>
+</div>
+
     <!-- 顶部用户登录栏 -->
     <div class="top-bar">
         <h1>小游戏合集平台</h1>
@@ -18,19 +36,11 @@
         </div>
     </div>
 
-    <!-- 全站搜索区域 B站风格 -->
+    <!-- 首页搜索入口 -->
     <div class="search-wrap">
         <input type="text" id="searchInput" placeholder="搜索游戏、帖子、用户" />
         <button id="searchBtn">搜索</button>
     </div>
-    <!-- 搜索分类标签（无综合，仅三类） -->
-    <div class="search-tab-wrap">
-        <button class="search-tab active" data-type="game">游戏</button>
-        <button class="search-tab" data-type="post">帖子</button>
-        <button class="search-tab" data-type="user">用户</button>
-    </div>
-    <!-- 搜索结果容器 -->
-    <div class="search-result-wrap" id="searchResultBox"></div>
 
     <!-- 主导航 -->
     <div class="nav-bar">
