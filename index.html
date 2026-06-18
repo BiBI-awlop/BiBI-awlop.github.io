@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小游戏合集平台</title>
+    <!-- 独立外部CSS -->
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+    <!-- 顶部用户登录栏 -->
+    <div class="top-bar">
+        <h1>小游戏合集平台</h1>
+        <div class="user-info">
+            <span id="nowUser">游客</span>
+            <button class="user-btn login-btn" id="openLogin">登录</button>
+            <button class="user-btn reg-btn" id="openReg">注册</button>
+            <button class="user-btn logout-btn" id="logoutBtn">退出登录</button>
+        </div>
+    </div>
+
+    <!-- 【整合进首页的完整搜索模块】 -->
+    <div class="search-wrap">
+        <input type="text" id="searchInput" placeholder="搜索游戏、帖子、用户" />
+        <button id="searchBtn">搜索</button>
+    </div>
+    <div class="search-tab-wrap">
+        <button class="search-tab active" data-type="game">游戏</button>
+        <button class="search-tab" data-type="post">帖子</button>
+        <button class="search-tab" data-type="user">用户</button>
+    </div>
+    <div class="search-result-wrap" id="searchResultBox"></div>
+
+    <!-- 主导航 -->
+    <div class="nav-bar">
+        <button class="nav-btn active" data-page="home">游戏大厅</button>
+        <button class="nav-btn" data-page="forum">玩家论坛</button>
+        <button class="nav-btn" data-page="mine">个人中心</button>
+    </div>
+
+    <!-- 游戏大厅 -->
+    <div class="home-page">
+        <div class="header">
+            <div></div>
+            <button class="add-btn" id="openModal">+ 添加新游戏</button>
+        </div>
+        <div id="gameTip" class="tip-text"></div>
+        <div class="game-wrap" id="gameBox"></div>
+    </div>
+
+    <!-- 游玩页 -->
+    <div class="play-page">
+        <button class="back-btn" id="backHome">← 返回游戏大厅</button>
+        <iframe id="gameIframe"></iframe>
+    </div>
+
+    <!-- 论坛（移除帖子详情跳转逻辑） -->
+    <div class="forum-page">
+        <div class="forum-top">
+            <h2>玩家交流论坛</h2>
+            <button class="post-btn" id="openPostModal">发布新帖子</button>
+        </div>
+        <div id="forumTip" class="tip-text"></div>
+        <div id="postList"></div>
+    </div>
+
+    <!-- 个人中心页面（自己） -->
+    <div class="mine-page">
+        <h2 style="margin-bottom:20px;color:#00d4ff;">我的个人中心</h2>
+        <div class="mine-tab-bar">
+            <div class="mine-tab active" data-tab="game">我的游戏</div>
+            <div class="mine-tab" data-tab="post">我的帖子</div>
+            <div class="mine-tab" data-tab="comment">我的评论</div>
+        </div>
+        <div class="mine-content show" id="mineGameBox"></div>
+        <div class="mine-content" id="minePostBox"></div>
+        <div class="mine-content" id="mineCommentBox"></div>
+    </div>
+
+    <!-- 他人用户弹窗页面 -->
+    <div class="other-user-page">
+        <button class="back-btn" id="backFromUser">← 返回</button>
+        <h2 style="margin-bottom:20px;color:#00d4ff;">用户：<span id="otherUserName"></span></h2>
+        <div class="mine-tab-bar">
+            <div class="mine-tab active" data-tab="otherGame">发布的游戏</div>
+            <div class="mine-tab" data-tab="otherPost">发布的帖子</div>
+        </div>
+        <div class="mine-content show" id="otherGameBox"></div>
+        <div class="mine-content" id="otherPostBox"></div>
+    </div>
+
+    <!-- 登录弹窗 -->
+    <div class="mask" id="loginMask">
+        <div class="modal">
+            <h2>用户登录</h2>
+            <div class="item">
+                <label>账号</label>
+                <input type="text" id="loginName" placeholder="管理员账号：admin">
+            </div>
+            <div class="item">
+                <label>密码</label>
+                <input type="password" id="loginPwd" placeholder="管理员密码：123456">
+            </div>
+            <div class="modal-btns">
+                <button class="cancel" id="closeLogin">取消</button>
+                <button class="submit" id="submitLogin">登录</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 注册弹窗 -->
+    <div class="mask" id="regMask">
+        <div class="modal">
+            <h2>新用户注册</h2>
+            <div class="item">
+                <label>设置账号</label>
+                <input type="text" id="regName">
+            </div>
+            <div class="item">
+                <label>设置密码</label>
+                <input type="password" id="regPwd">
+            </div>
+            <div class="modal-btns">
+                <button class="cancel" id="closeReg">取消</button>
+                <button class="submit" id="submitReg">注册</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加游戏弹窗 -->
+    <div class="mask" id="gameMask">
+        <div class="modal">
+            <h2>添加新游戏</h2>
+            <div class="item">
+                <label>游戏名称</label>
+                <input type="text" id="gameName" placeholder="例如：贪吃蛇小游戏">
+            </div>
+            <div class="item">
+                <label>游戏网页地址(url)</label>
+                <input type="text" id="gameUrl" placeholder="https://xxx/game.html">
+            </div>
+            <div class="item">
+                <label>封面图片链接(可选)</label>
+                <input type="text" id="gameImg" placeholder="图片在线地址，不填使用默认图">
+            </div>
+            <div class="modal-btns">
+                <button class="cancel" id="closeModal">取消</button>
+                <button class="submit" id="saveGame">保存游戏</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑游戏弹窗 -->
+    <div class="mask" id="editGameMask">
+        <div class="modal">
+            <h2>编辑游戏信息</h2>
+            <input type="hidden" id="editGameIndex">
+            <div class="item">
+                <label>游戏名称</label>
+                <input type="text" id="editGameName" placeholder="输入游戏名称">
+            </div>
+            <div class="item">
+                <label>游戏网页地址(url)</label>
+                <input type="text" id="editGameUrl" placeholder="游戏链接/本地相对路径">
+            </div>
+            <div class="item">
+                <label>封面图片链接</label>
+                <input type="text" id="editGameImg" placeholder="图片地址，留空使用默认图">
+            </div>
+            <div class="modal-btns">
+                <button class="cancel" id="closeEditGame">取消</button>
+                <button class="submit" id="submitEditGame">保存修改</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 发帖弹窗【本地图片上传】 -->
+    <div class="mask" id="postMask">
+        <div class="modal">
+            <h2>发布新帖子</h2>
+            <div class="item">
+                <label>帖子文字内容</label>
+                <textarea id="postText" placeholder="分享游戏心得、推荐好玩的游戏..."></textarea>
+            </div>
+            <div class="item">
+                <label>上传配图（多张）</label>
+                <input type="file" id="postImgInput" accept="image/*" multiple>
+                <div id="postImgPreview"></div>
+            </div>
+            <div class="modal-btns">
+                <button class="cancel" id="closePostModal">取消</button>
+                <button class="submit" id="submitPost">发布</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 独立外部JS文件，所有逻辑写在main.js -->
+    <script src="./js/main.js"></script>
+</body>
+</html>
