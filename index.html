@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>小游戏合集平台</title>
-    <!-- 独立外部CSS -->
+    <title>test</title>
     <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
@@ -19,16 +18,18 @@
         </div>
     </div>
 
-    <!-- 【整合进首页的完整搜索模块】 -->
+    <!-- 全站搜索区域 B站风格 -->
     <div class="search-wrap">
         <input type="text" id="searchInput" placeholder="搜索游戏、帖子、用户" />
         <button id="searchBtn">搜索</button>
     </div>
+    <!-- 搜索分类标签（无综合，仅三类） -->
     <div class="search-tab-wrap">
         <button class="search-tab active" data-type="game">游戏</button>
         <button class="search-tab" data-type="post">帖子</button>
         <button class="search-tab" data-type="user">用户</button>
     </div>
+    <!-- 搜索结果容器 -->
     <div class="search-result-wrap" id="searchResultBox"></div>
 
     <!-- 主导航 -->
@@ -54,7 +55,7 @@
         <iframe id="gameIframe"></iframe>
     </div>
 
-    <!-- 论坛（移除帖子详情跳转逻辑） -->
+    <!-- 论坛 -->
     <div class="forum-page">
         <div class="forum-top">
             <h2>玩家交流论坛</h2>
@@ -77,9 +78,8 @@
         <div class="mine-content" id="mineCommentBox"></div>
     </div>
 
-    <!-- 他人用户弹窗页面 -->
-    <div class="other-user-page">
-        <button class="back-btn" id="backFromUser">← 返回</button>
+    <!-- 他人用户主页（搜索跳转专用，无评论标签） -->
+    <div class="other-user-page" style="display:none;">
         <h2 style="margin-bottom:20px;color:#00d4ff;">用户：<span id="otherUserName"></span></h2>
         <div class="mine-tab-bar">
             <div class="mine-tab active" data-tab="otherGame">发布的游戏</div>
@@ -174,18 +174,13 @@
         </div>
     </div>
 
-    <!-- 发帖弹窗【本地图片上传】 -->
+    <!-- 发帖弹窗 -->
     <div class="mask" id="postMask">
         <div class="modal">
-            <h2>发布新帖子</h2>
+            <h2>发布帖子</h2>
             <div class="item">
-                <label>帖子文字内容</label>
+                <label>帖子内容</label>
                 <textarea id="postText" placeholder="分享游戏心得、推荐好玩的游戏..."></textarea>
-            </div>
-            <div class="item">
-                <label>上传配图（多张）</label>
-                <input type="file" id="postImgInput" accept="image/*" multiple>
-                <div id="postImgPreview"></div>
             </div>
             <div class="modal-btns">
                 <button class="cancel" id="closePostModal">取消</button>
@@ -194,7 +189,6 @@
         </div>
     </div>
 
-    <!-- 独立外部JS文件，所有逻辑写在main.js -->
     <script src="./js/main.js"></script>
 </body>
 </html>

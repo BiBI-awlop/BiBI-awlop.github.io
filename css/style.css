@@ -413,17 +413,3 @@ iframe {
 }
 .my-comment-post-info{color:#00d4ff;margin-bottom:8px;}
 .my-comment-text{background:#1f2b48;padding:8px;border-radius:4px;margin:8px 0;}
-/* 发帖图片上传预览 */
-#postImgPreview img{
-    width:100px;height:100px;object-fit:cover;border-radius:4px;
-}
-/* 论坛列表折叠评论按钮 */
-.unfold-comment-btn{
-    margin:10px 0;padding:6px 12px;background:#222;border:none;border-radius:4px;color:#00d4ff;cursor:pointer;
-}
-/* 独立搜索页面：隐藏主导航栏 */
-body.search-page .nav-bar{display:none !important;}
-/* 帖子详情页间距 */
-#detailPostWrap{margin-top:20px;}
-/* 帖子内配图 */
-.post-img-item{max-width:300px;border-radius:6px;}
