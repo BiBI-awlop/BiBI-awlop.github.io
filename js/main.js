@@ -1,4 +1,9 @@
-// ========== 全局用户状态 ==========
+// ========== Supabase 云端数据库配置 ==========
+const SUPABASE_URL = "https://osxjcvkosjnfurcejgoh.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_jggrm7d8MCMVrnHCF7bSzw_SApTVNsG";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ========== 全局变量 ==========
 const nowUserDom = document.getElementById('nowUser');
 const logoutBtn = document.getElementById('logoutBtn');
 const openLogin = document.getElementById('openLogin');
@@ -15,11 +20,9 @@ const regName = document.getElementById('regName');
 const regPwd = document.getElementById('regPwd');
 let loginUser = null;
 
-// ========== 搜索模块全局变量（全屏覆盖版） ==========
-// 首页搜索入口
+// ========== 全屏搜索模块全局变量 ==========
 const searchInput = document.getElementById("searchInput");
 const searchBtn = document.getElementById("searchBtn");
-// 全屏搜索结果层
 const searchPageOverlay = document.getElementById("searchPageOverlay");
 const searchInputOverlay = document.getElementById("searchInputOverlay");
 const searchBtnOverlay = document.getElementById("searchBtnOverlay");
@@ -28,261 +31,279 @@ const searchTabsOverlay = document.querySelectorAll(".search-page-overlay .searc
 const closeSearchPage = document.getElementById("closeSearchPage");
 let currentSearchType = "game";
 
-// 用户数据
-function getUserList(){
-    let data = localStorage.getItem('userList');
-    return data ? JSON.parse(data) : [{name:'admin',pwd:'123456',isAdmin:true}];
-}
-function saveUserList(arr){
-    localStorage.setItem('userList',JSON.stringify(arr));
-}
-function updateUserUI(){
-    if(loginUser){
-        nowUserDom.innerText = loginUser.isAdmin ? `管理员：${loginUser.name}` : `用户：${loginUser.name}`;
-        openLogin.style.display = 'none';
-        openReg.style.display = 'none';
-        logoutBtn.style.display = 'inline-block';
-    }else{
-        nowUserDom.innerText = "游客";
-        openLogin.style.display = 'inline-block';
-        openReg.style.display = 'inline-block';
-        logoutBtn.style.display = 'none';
-    }
-    refreshAllBtnStatus();
-}
-function refreshAllBtnStatus(){
-    const addGameBtn = document.getElementById('openModal');
-    const writePostBtn = document.getElementById('openPostModal');
-    const gameTip = document.getElementById('gameTip');
-    const forumTip = document.getElementById('forumTip');
-    if(!loginUser){
-        addGameBtn.disabled = true;
-        writePostBtn.disabled = true;
-        gameTip.innerText = "提示：登录后才可添加游戏";
-        forumTip.innerText = "提示：登录后才可发帖、评论";
-    }else{
-        addGameBtn.disabled = false;
-        writePostBtn.disabled = false;
-        gameTip.innerText = "";
-        forumTip.innerText = "";
-    }
-}
-// 登录注册退出
-submitLogin.onclick = function(){
-    const un = loginName.value.trim();
-    const pw = loginPwd.value.trim();
-    if(!un||!pw){alert("账号密码不能为空");return;}
-    const userArr = getUserList();
-    const find = userArr.find(u=>u.name===un&&u.pwd===pw);
-    if(!find){alert("账号或密码错误");return;}
-    loginUser = {name:find.name,isAdmin:!!find.isAdmin};
-    loginMask.style.display = 'none';
-    loginName.value = "";loginPwd.value = "";
-    updateUserUI();renderGame();renderPost();renderMinePage();
-}
-submitReg.onclick = function(){
-    const un = regName.value.trim();
-    const pw = regPwd.value.trim();
-    if(!un||!pw){alert("账号密码不能为空");return;}
-    if(un==="admin"){alert("禁止注册admin管理员账号");return;}
-    const userArr = getUserList();
-    if(userArr.find(u=>u.name===un)){alert("账号已存在");return;}
-    userArr.push({name:un,pwd:pw,isAdmin:false});
-    saveUserList(userArr);
-    regMask.style.display = 'none';
-    regName.value = "";regPwd.value = "";
-    alert("注册成功，请登录");
-}
-logoutBtn.onclick = function(){
-    loginUser = null;
-    updateUserUI();renderGame();renderPost();renderMinePage();
-}
-openLogin.onclick = ()=>loginMask.style.display='flex';
-openReg.onclick = ()=>regMask.style.display='flex';
-closeLogin.onclick = ()=>loginMask.style.display='none';
-closeReg.onclick = ()=>regMask.style.display='none';
-
-// ====================== 页面导航切换 ======================
+// ========== 页面容器DOM ==========
 const homePage = document.querySelector('.home-page');
 const playPage = document.querySelector('.play-page');
 const forumPage = document.querySelector('.forum-page');
 const minePage = document.querySelector('.mine-page');
 const otherUserPage = document.querySelector('.other-user-page');
 const navBtns = document.querySelectorAll('.nav-btn');
+const gameBox = document.getElementById('gameBox');
+const mineGameBox = document.getElementById('mineGameBox');
+const otherGameBox = document.getElementById('otherGameBox');
+const minePostBox = document.getElementById('minePostBox');
+const otherPostBox = document.getElementById('otherPostBox');
+const mineCommentBox = document.getElementById('mineCommentBox');
+const postList = document.getElementById('postList');
+const backHome = document.getElementById('backHome');
+const gameIframe = document.getElementById('gameIframe');
+const openModal = document.getElementById('openModal');
+const gameMask = document.getElementById('gameMask');
+const closeModal = document.getElementById('closeModal');
+const saveGame = document.getElementById('saveGame');
+const gameName = document.getElementById('gameName');
+const gameUrl = document.getElementById('gameUrl');
+const gameImg = document.getElementById('gameImg');
+const editGameMask = document.getElementById('editGameMask');
+const closeEditGame = document.getElementById('closeEditGame');
+const submitEditGame = document.getElementById('submitEditGame');
+const editGameId = document.getElementById('editGameId');
+const editGameName = document.getElementById('editGameName');
+const editGameUrl = document.getElementById('editGameUrl');
+const editGameImg = document.getElementById('editGameImg');
+const openPostModal = document.getElementById('openPostModal');
+const postMask = document.getElementById('postMask');
+const closePostModal = document.getElementById('closePostModal');
+const submitPost = document.getElementById('submitPost');
+const postText = document.getElementById('postText');
+const gameTip = document.getElementById('gameTip');
+const forumTip = document.getElementById('forumTip');
+const mineTabs = document.querySelectorAll('.mine-tab');
+const mineContents = document.querySelectorAll('.mine-content');
+const otherTabs = document.querySelectorAll('.other-user-page .mine-tab');
+const otherContents = document.querySelectorAll('.other-user-page .mine-content');
+const otherUserNameDom = document.getElementById('otherUserName');
+let targetOtherUserName = "";
+
+// ========== 云端数据库读写函数（完全替代localStorage） ==========
+/** 获取全部用户 */
+async function getUserList(){
+    const { data, error } = await supabase.from('app_users').select('*');
+    if(error){
+        console.error("读取用户失败",error);
+        // 初始化默认管理员账号
+        await supabase.from('app_users').insert([{name:"admin",pwd:"123456",is_admin:true}]);
+        return [{name:'admin',pwd:'123456',isAdmin:true}];
+    }
+    return data.map(item=>{
+        return {
+            name: item.name,
+            pwd: item.pwd,
+            isAdmin: item.is_admin
+        }
+    });
+}
+/** 注册新增用户 */
+async function addNewUser(userObj){
+    await supabase.from('app_users').insert([userObj]);
+}
+/** 获取全部游戏 */
+async function getGameList() {
+    const { data, error } = await supabase.from('games').select('*').order('create_at',{asc:false});
+    if(error){
+        console.error("读取游戏失败",error);
+        return [];
+    }
+    return data.map(item=>{
+        return {
+            id: item.id,
+            name: item.name,
+            url: item.url,
+            img: item.img,
+            author: item.author
+        }
+    })
+}
+/** 新增游戏 */
+async function addGame(gameObj){
+    await supabase.from('games').insert([gameObj]);
+}
+/** 修改游戏 */
+async function updateGame(gameId, newData){
+    await supabase.from('games').update(newData).eq('id',gameId);
+}
+/** 删除游戏 */
+async function deleteGame(gameId){
+    await supabase.from('games').delete().eq('id',gameId);
+}
+/** 获取全部帖子 */
+async function getPostList(){
+    const { data } = await supabase.from('posts').select('*').order('create_at',{asc:false});
+    return data.map(item=>{
+        return {
+            id: item.id,
+            user: item.user_name,
+            content: item.content,
+            time: item.time,
+            comments: item.comments
+        }
+    })
+}
+/** 新增帖子 */
+async function addPost(postObj){
+    await supabase.from('posts').insert([postObj]);
+}
+/** 更新帖子（评论/删除） */
+async function updatePost(postId, data){
+    await supabase.from('posts').update(data).eq('id',postId);
+}
+async function deletePost(postId){
+    await supabase.from('posts').delete().eq('id',postId);
+}
+
+// ========== 用户登录注册逻辑 ==========
+// 打开登录弹窗
+openLogin.onclick = ()=> loginMask.style.display = 'flex';
+closeLogin.onclick = ()=> loginMask.style.display = 'none';
+// 打开注册弹窗
+openReg.onclick = ()=> regMask.style.display = 'flex';
+closeReg.onclick = ()=> regMask.style.display = 'none';
+// 登录提交
+submitLogin.onclick = async function(){
+    const name = loginName.value.trim();
+    const pwd = loginPwd.value.trim();
+    if(!name || !pwd) return alert("账号密码不能为空");
+    const userList = await getUserList();
+    const findUser = userList.find(u=>u.name === name && u.pwd === pwd);
+    if(!findUser) return alert("账号或密码错误");
+    loginUser = findUser;
+    nowUserDom.innerText = loginUser.name;
+    logoutBtn.style.display = 'inline-block';
+    openLogin.style.display = 'none';
+    openReg.style.display = 'none';
+    loginMask.style.display = 'none';
+    loginName.value = "";
+    loginPwd.value = "";
+    refreshAllPage();
+}
+// 注册提交
+submitReg.onclick = async function(){
+    const name = regName.value.trim();
+    const pwd = regPwd.value.trim();
+    if(!name || !pwd) return alert("账号密码不能为空");
+    const userList = await getUserList();
+    if(userList.find(u=>u.name === name)) return alert("账号已存在");
+    await addNewUser({name,pwd,is_admin:false});
+    alert("注册成功，请登录");
+    regMask.style.display = 'none';
+    regName.value = "";
+    regPwd.value = "";
+}
+// 退出登录
+logoutBtn.onclick = function(){
+    loginUser = null;
+    nowUserDom.innerText = "游客";
+    logoutBtn.style.display = 'none';
+    openLogin.style.display = 'inline-block';
+    openReg.style.display = 'inline-block';
+    refreshAllPage();
+}
+// 更新登录状态按钮
+function refreshLoginBtnState(){
+    if(!loginUser){
+        openModal.disabled = true;
+        openPostModal.disabled = true;
+        gameTip.innerText = "提示：登录后才可添加游戏";
+        forumTip.innerText = "提示：登录后才可发布帖子";
+    }else{
+        openModal.disabled = false;
+        openPostModal.disabled = false;
+        gameTip.innerText = "";
+        forumTip.innerText = "";
+    }
+}
+
+// ========== 页面导航切换 ==========
 navBtns.forEach(btn=>{
-    btn.addEventListener('click',()=>{
+    btn.onclick = async function(){
         navBtns.forEach(b=>b.classList.remove('active'));
-        btn.classList.add('active');
-        const target = btn.dataset.page;
-        // 隐藏所有页面
+        this.classList.add('active');
+        const page = this.dataset.page;
         homePage.style.display = 'none';
         playPage.style.display = 'none';
         forumPage.style.display = 'none';
         minePage.style.display = 'none';
         otherUserPage.style.display = 'none';
-        if(target === 'home') {homePage.style.display = 'block';renderGame();}
-        if(target === 'forum') {forumPage.style.display = 'block';renderPost();}
-        if(target === 'mine'){
-            if(!loginUser){alert("请先登录再进入个人中心");return;}
-            minePage.style.display = 'block';renderMinePage();
+        if(page === 'home'){
+            homePage.style.display = 'block';
+            await renderGame();
+        }else if(page === 'forum'){
+            forumPage.style.display = 'block';
+            await renderPost();
+        }else if(page === 'mine'){
+            minePage.style.display = 'block';
+            await renderMinePage();
         }
-    })
-})
-// 个人中心标签切换
-const mineTabs = document.querySelectorAll('.mine-tab');
-const mineContents = document.querySelectorAll('.mine-content');
-mineTabs.forEach(tab=>{
-    tab.onclick = function(){
-        const t = this.dataset.tab;
-        mineTabs.forEach(i=>i.classList.remove('active'));
-        this.classList.add('active');
-        mineContents.forEach(c=>c.classList.remove('show'));
-        if(t==='game') document.getElementById('mineGameBox').classList.add('show');
-        if(t==='post') document.getElementById('minePostBox').classList.add('show');
-        if(t==='comment') document.getElementById('mineCommentBox').classList.add('show');
-        renderMinePage();
     }
 })
-// 他人主页标签切换
-const otherTabs = document.querySelectorAll('.other-user-page .mine-tab');
-const otherContents = document.querySelectorAll('.other-user-page .mine-content');
-otherTabs.forEach(tab=>{
-    tab.onclick = function(){
-        const t = this.dataset.tab;
-        otherTabs.forEach(i=>i.classList.remove('active'));
-        this.classList.add('active');
-        otherContents.forEach(c=>c.classList.remove('show'));
-        if(t==='otherGame') document.getElementById('otherGameBox').classList.add('show');
-        if(t==='otherPost') document.getElementById('otherPostBox').classList.add('show');
-        renderOtherUserPage();
-    }
-})
+backHome.onclick = function(){
+    playPage.style.display = 'none';
+    homePage.style.display = 'block';
+    navBtns.forEach(b=>b.classList.remove('active'));
+    navBtns[0].classList.add('active');
+    gameIframe.src = "";
+}
 
-// ====================== 游戏模块 ======================
-const gameBox = document.getElementById('gameBox');
-const mineGameBox = document.getElementById('mineGameBox');
-const otherGameBox = document.getElementById('otherGameBox');
-const gameMask = document.getElementById('gameMask');
-const openModal = document.getElementById('openModal');
-const closeModal = document.getElementById('closeModal');
-const saveGame = document.getElementById('saveGame');
-const backHome = document.getElementById('backHome');
-const gameIframe = document.getElementById('gameIframe');
-const gameName = document.getElementById('gameName');
-const gameUrl = document.getElementById('gameUrl');
-const gameImg = document.getElementById('gameImg');
-function getGameList() {
-    let list = localStorage.getItem('gameList');
-    return list ? JSON.parse(list) : [];
-}
-function saveGameList(arr) {
-    localStorage.setItem('gameList', JSON.stringify(arr));
-}
-function renderGame() {
-    const list = getGameList();
+// ========== 游戏大厅渲染 ==========
+async function renderGame() {
+    refreshLoginBtnState();
+    const list = await getGameList();
     gameBox.innerHTML = '';
-    if(list.length === 0) {
-        gameBox.innerHTML = '<div class="empty-tip">暂无游戏，登录后添加第一款游戏</div>';
+    if(list.length === 0){
+        gameBox.innerHTML = '<div class="empty-tip">暂无游戏，登录后添加新游戏</div>';
         return;
     }
-    list.forEach((item, index) => {
+    list.forEach(item => {
         const card = document.createElement('div');
         card.className = 'game-card';
-        const canDel = loginUser && (loginUser.isAdmin || loginUser.name === item.author);
+        const canEdit = loginUser && (loginUser.name === item.author || loginUser.isAdmin);
         card.innerHTML = `
             <img class="card-img" src="${item.img || 'https://picsum.photos/id/237/300/160'}" alt="${item.name}">
             <div class="card-info">
                 <div>
-                    <span class="card-name">${item.name}</span>
+                    <div class="card-name">${item.name}</div>
                     <div class="card-author">发布者：${item.author}</div>
                 </div>
-                <div style="display:flex;gap:6px;">
-                    <button class="edit-game-btn" data-index="${index}" ${canDel?"":"disabled"}>编辑</button>
-                    <button class="del-btn" data-index="${index}" ${canDel?"":"disabled"}>删除</button>
+                <div style="display:flex;gap:4px;">
+                    <button class="edit-game-btn" data-id="${item.id}" ${canEdit ? '' : 'disabled'}>编辑</button>
+                    <button class="del-btn" data-id="${item.id}" ${canEdit ? '' : 'disabled'}>删除</button>
                 </div>
             </div>
         `;
-        card.addEventListener('click', (e) => {
-            if(e.target.classList.contains('del-btn') || e.target.classList.contains('edit-game-btn')) return;
-            openPlay(item.url);
-        })
+        // 点击卡片打开游戏
+        card.onclick = (e)=>{
+            if(e.target.classList.contains('edit-game-btn') || e.target.classList.contains('del-btn')) return;
+            openPlayGame(item.url);
+        }
         gameBox.appendChild(card);
     })
-    document.querySelectorAll('.del-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            let idx = e.target.dataset.index;
-            let arr = getGameList();
-            arr.splice(idx, 1);
-            saveGameList(arr);
-            renderGame();renderMinePage();
-        })
-    })
-    bindGameEditBtn();
-}
-// 渲染我的游戏
-function renderMineGame(){
-    mineGameBox.innerHTML = '';
-    const allGame = getGameList();
-    const myGame = allGame.filter(g=>g.author === loginUser.name);
-    if(myGame.length===0){
-        mineGameBox.innerHTML = '<div class="empty-tip">你还没有发布任何游戏</div>';
-        return;
-    }
-    myGame.forEach((item,idx)=>{
-        const div = document.createElement('div');
-        div.className = 'game-card';
-        div.innerHTML = `
-            <img class="card-img" src="${item.img || 'https://picsum.photos/id/237/300/160'}">
-            <div class="card-info">
-                <span class="card-name">${item.name}</span>
-                <div style="display:flex;gap:6px;">
-                    <button class="mine-edit-btn" data-mineidx="${idx}">编辑</button>
-                    <button class="del-btn" data-mineidx="${idx}">删除</button>
-                </div>
-            </div>
-        `;
-        div.onclick = e=>{
-            if(e.target.classList.contains('del-btn') || e.target.classList.contains('mine-edit-btn')) return;
-            openPlay(item.url);
-        }
-        mineGameBox.appendChild(div);
-    })
-    mineGameBox.querySelectorAll('.del-btn').forEach(btn=>{
-        btn.onclick = function(){
-            const mineIdx = this.dataset.mineidx;
-            const all = getGameList();
-            const myGame = all.filter(g=>g.author===loginUser.name);
-            const targetGame = myGame[mineIdx];
-            const realIndex = all.findIndex(g=>g.name===targetGame.name&&g.author===loginUser.name&&g.url===targetGame.url);
-            all.splice(realIndex,1);
-            saveGameList(all);renderGame();renderMinePage();
+    // 编辑游戏按钮
+    document.querySelectorAll('.edit-game-btn').forEach(btn=>{
+        btn.onclick = async function(e){
+            e.stopPropagation();
+            const gameId = Number(this.dataset.id);
+            const allGame = await getGameList();
+            const target = allGame.find(g=>g.id === gameId);
+            editGameId.value = gameId;
+            editGameName.value = target.name;
+            editGameUrl.value = target.url;
+            editGameImg.value = target.img || "";
+            editGameMask.style.display = 'flex';
         }
     })
-    bindMineGameEditBtn();
-}
-// 渲染他人发布的游戏（他人主页）
-function renderOtherGame(targetUserName){
-    otherGameBox.innerHTML = '';
-    const allGame = getGameList();
-    const targetGame = allGame.filter(g=>g.author === targetUserName);
-    if(targetGame.length===0){
-        otherGameBox.innerHTML = '<div class="empty-tip">该用户没有发布游戏</div>';
-        return;
-    }
-    targetGame.forEach(item=>{
-        const div = document.createElement('div');
-        div.className = 'game-card';
-        div.innerHTML = `
-            <img class="card-img" src="${item.img || 'https://picsum.photos/id/237/300/160'}">
-            <div class="card-info">
-                <span class="card-name">${item.name}</span>
-            </div>
-        `;
-        div.onclick = ()=> openPlay(item.url);
-        otherGameBox.appendChild(div);
+    // 删除游戏按钮
+    document.querySelectorAll('.del-btn').forEach(btn=>{
+        btn.onclick = async function(e){
+            e.stopPropagation();
+            const gameId = Number(this.dataset.id);
+            if(!confirm("确定删除该游戏？")) return;
+            await deleteGame(gameId);
+            await renderGame();
+            await renderMinePage();
+        }
     })
 }
-function openPlay(url) {
+function openPlayGame(url){
     homePage.style.display = 'none';
     forumPage.style.display = 'none';
     minePage.style.display = 'none';
@@ -290,372 +311,359 @@ function openPlay(url) {
     playPage.style.display = 'block';
     gameIframe.src = url;
 }
-backHome.addEventListener('click', () => {
-    playPage.style.display = 'none';
-    homePage.style.display = 'block';
-    gameIframe.src = '';
-    navBtns.forEach(b=>b.classList.remove('active'));
-    navBtns[0].classList.add('active');
-    renderGame();
-})
-openModal.addEventListener('click', () => gameMask.style.display = 'flex');
-closeModal.addEventListener('click', () => {
+
+// ========== 添加游戏弹窗 ==========
+openModal.onclick = ()=> gameMask.style.display = 'flex';
+closeModal.onclick = ()=>{
     gameMask.style.display = 'none';
-    gameName.value = '';gameUrl.value = '';gameImg.value = '';
-})
-saveGame.addEventListener('click', () => {
-    let name = gameName.value.trim();
-    let url = gameUrl.value.trim();
-    let img = gameImg.value.trim();
-    if(!name || !url) {alert('游戏名称和游戏链接不能为空！');return;}
-    const list = getGameList();
-    list.push({name, url, img, author:loginUser.name});
-    saveGameList(list);
+    gameName.value = "";
+    gameUrl.value = "";
+    gameImg.value = "";
+}
+saveGame.onclick = async function(){
+    if(!loginUser) return alert("请先登录");
+    const name = gameName.value.trim();
+    const url = gameUrl.value.trim();
+    const img = gameImg.value.trim();
+    if(!name || !url) return alert("游戏名称和链接不能为空");
+    await addGame({name, url, img, author:loginUser.name});
     gameMask.style.display = 'none';
-    gameName.value = '';gameUrl.value = '';gameImg.value = '';
-    renderGame();renderMinePage();
-})
-
-// ====================== 编辑游戏模块 ======================
-const editGameMask = document.getElementById('editGameMask');
-const closeEditGame = document.getElementById('closeEditGame');
-const submitEditGame = document.getElementById('submitEditGame');
-const editGameIndex = document.getElementById('editGameIndex');
-const editGameName = document.getElementById('editGameName');
-const editGameUrl = document.getElementById('editGameUrl');
-const editGameImg = document.getElementById('editGameImg');
-
-closeEditGame.onclick = function () {
+    gameName.value = "";
+    gameUrl.value = "";
+    gameImg.value = "";
+    await renderGame();
+    await renderMinePage();
+}
+// 编辑游戏弹窗
+closeEditGame.onclick = ()=> editGameMask.style.display = 'none';
+submitEditGame.onclick = async function(){
+    const id = Number(editGameId.value);
+    const name = editGameName.value.trim();
+    const url = editGameUrl.value.trim();
+    const img = editGameImg.value.trim();
+    if(!name || !url) return alert("名称和链接不能为空");
+    await updateGame(id, {name, url, img});
     editGameMask.style.display = 'none';
-    editGameIndex.value = '';
-    editGameName.value = '';
-    editGameUrl.value = '';
-    editGameImg.value = '';
-}
-function bindGameEditBtn() {
-    document.querySelectorAll('.edit-game-btn').forEach(btn => {
-        btn.onclick = function (e) {
-            e.stopPropagation();
-            const idx = this.dataset.index;
-            const allGames = getGameList();
-            const target = allGames[idx];
-            editGameIndex.value = idx;
-            editGameName.value = target.name;
-            editGameUrl.value = target.url;
-            editGameImg.value = target.img || '';
-            editGameMask.style.display = 'flex';
-        }
-    })
-}
-function bindMineGameEditBtn() {
-    document.querySelectorAll('.mine-edit-btn').forEach(btn => {
-        btn.onclick = function (e) {
-            e.stopPropagation();
-            const mineIdx = this.dataset.mineidx;
-            const allGames = getGameList();
-            const myGameArr = allGames.filter(g => g.author === loginUser.name);
-            const target = myGameArr[mineIdx];
-            const realIndex = allGames.findIndex(g => g.name === target.name && g.author === loginUser.name && g.url === target.url);
-            editGameIndex.value = realIndex;
-            editGameName.value = target.name;
-            editGameUrl.value = target.url;
-            editGameImg.value = target.img || '';
-            editGameMask.style.display = 'flex';
-        }
-    })
-}
-submitEditGame.onclick = function () {
-    const idx = editGameIndex.value;
-    const newName = editGameName.value.trim();
-    const newUrl = editGameUrl.value.trim();
-    const newImg = editGameImg.value.trim();
-    if (!newName || !newUrl) {
-        alert('游戏名称和游戏链接不能为空！');
-        return;
-    }
-    const allGames = getGameList();
-    allGames[idx].name = newName;
-    allGames[idx].url = newUrl;
-    allGames[idx].img = newImg;
-    saveGameList(allGames);
-    editGameMask.style.display = 'none';
-    editGameIndex.value = '';
-    editGameName.value = '';
-    editGameUrl.value = '';
-    editGameImg.value = '';
-    renderGame();
-    renderMinePage();
+    await renderGame();
+    await renderMinePage();
 }
 
-// ====================== 论坛帖子评论模块 ======================
-const postMask = document.getElementById('postMask');
-const openPostModal = document.getElementById('openPostModal');
-const closePostModal = document.getElementById('closePostModal');
-const submitPost = document.getElementById('submitPost');
-const postList = document.getElementById('postList');
-const minePostBox = document.getElementById('minePostBox');
-const otherPostBox = document.getElementById('otherPostBox');
-const postText = document.getElementById('postText');
-function getPostList(){
-    let data = localStorage.getItem('postList');
-    return data ? JSON.parse(data) : [];
-}
-function savePostList(arr){
-    localStorage.setItem('postList', JSON.stringify(arr));
-}
-function renderPost(){
-    const arr = getPostList();
+// ========== 论坛帖子渲染 ==========
+async function renderPost(){
+    refreshLoginBtnState();
+    const list = await getPostList();
     postList.innerHTML = '';
-    if(arr.length === 0){
-        postList.innerHTML = '<div class="empty-tip">暂无帖子，登录后发布第一条分享吧！</div>';
+    if(list.length === 0){
+        postList.innerHTML = '<div class="empty-tip">暂无帖子，登录发布第一条分享</div>';
         return;
     }
-    arr.forEach((postItem,postIndex)=>{
-        const canDelPost = loginUser && (loginUser.isAdmin || loginUser.name === postItem.user);
-        let commentHtml = '';
-        const commentArr = postItem.comments || [];
-        if(commentArr.length > 0){
-            commentArr.forEach((com,comIdx)=>{
-                const canDelCom = loginUser && (loginUser.isAdmin || loginUser.name === com.user || loginUser.name === postItem.user);
-                commentHtml += `
-                    <div class="comment-item">
-                        <div class="comment-top">
-                            <span><span class="floor">${com.floor}楼</span> <span class="comment-user">${com.user}</span></span>
-                            <span>${com.time} <span class="del-comment" data-post="${postIndex}" data-com="${comIdx}" ${canDelCom?"":"disabled"}>删除</span></span>
-                        </div>
-                        <div class="comment-text">${com.text}</div>
+    list.forEach(item=>{
+        const postDom = document.createElement('div');
+        postDom.className = 'post-item';
+        const canDel = loginUser && (loginUser.name === item.user || loginUser.isAdmin);
+        let commentHtml = "";
+        item.comments.forEach((com,idx)=>{
+            commentHtml += `
+                <div class="comment-item">
+                    <div class="comment-top">
+                        <span class="comment-user">${com.user}</span>
+                        <span>${com.time}</span>
+                        ${loginUser && loginUser.name === com.user ? `<span class="del-comment" data-postid="${item.id}" data-comidx="${idx}">删除</span>` : ""}
                     </div>
-                `;
-            })
-        }else commentHtml = '<div style="color:#aaa;">暂无评论，快来抢沙发！</div>';
-        const div = document.createElement('div');
-        div.className = 'post-item';
-        const canSendCom = !!loginUser;
-        div.innerHTML = `
+                    <div>${com.content}</div>
+                </div>
+            `
+        })
+        postDom.innerHTML = `
             <div class="post-head">
-                <span class="post-name">${postItem.user}</span>
-                <span>${postItem.time}</span>
+                <span class="post-author">${item.user}</span>
+                <span>${item.time}</span>
             </div>
-            <div class="post-content">${postItem.content}</div>
-            <button class="post-del" data-postidx="${postIndex}" ${canDelPost?"":"disabled"}>删除整篇帖子</button>
+            <div class="post-content">${item.content}</div>
+            <button class="del-post-btn" data-id="${item.id}" ${canDel ? '' : 'disabled'}>删除帖子</button>
             <div class="comment-wrap">
                 <div class="comment-title">评论区</div>
                 <div class="comment-input-box">
-                    <input class="com-user" placeholder="昵称" value="${loginUser?loginUser.name:''}" ${loginUser?"readonly":"disabled"}>
-                    <input class="com-text" placeholder="输入评论内容" ${canSendCom?"":"disabled"}>
-                    <button class="send-comment" data-pid="${postIndex}" ${canSendCom?"":"disabled"}>发送评论</button>
+                    <input class="com-user-input" placeholder="你的昵称" value="${loginUser ? loginUser.name : ''}" ${loginUser ? 'readonly' : ''}>
+                    <input class="com-content-input" placeholder="输入评论内容">
+                    <button class="send-comment-btn" data-postid="${item.id}" ${loginUser ? '' : 'disabled'}>发送评论</button>
                 </div>
-                <div class="comment-list">${commentHtml}</div>
+                <div class="comment-list">
+                    ${commentHtml || "<div style='color:#aaa;'>暂无评论</div>"}
+                </div>
             </div>
         `;
-        postList.appendChild(div);
+        postList.appendChild(postDom);
     })
-    bindPostEvent();
+    // 删除帖子
+    document.querySelectorAll('.del-post-btn').forEach(btn=>{
+        btn.onclick = async function(){
+            const pid = Number(this.dataset.id);
+            if(!confirm("删除这条帖子？")) return;
+            await deletePost(pid);
+            await renderPost();
+            await renderMinePage();
+        }
+    })
+    // 发送评论
+    document.querySelectorAll('.send-comment-btn').forEach(btn=>{
+        btn.onclick = async function(){
+            const pid = Number(this.dataset.postid);
+            const userInput = this.parentElement.querySelector('.com-user-input');
+            const contentInput = this.parentElement.querySelector('.com-content-input');
+            const comUser = userInput.value.trim();
+            const comContent = contentInput.value.trim();
+            if(!comUser || !comContent) return alert("昵称和评论不能为空");
+            const allPost = await getPostList();
+            const targetPost = allPost.find(p=>p.id === pid);
+            const newCom = {
+                user: comUser,
+                content: comContent,
+                time: new Date().toLocaleString()
+            };
+            const newComments = [...targetPost.comments, newCom];
+            await updatePost(pid, {comments:newComments});
+            contentInput.value = "";
+            await renderPost();
+        }
+    })
+    // 删除评论
+    document.querySelectorAll('.del-comment').forEach(el=>{
+        el.onclick = async function(){
+            const pid = Number(this.dataset.postid);
+            const comIdx = Number(this.dataset.comidx);
+            const allPost = await getPostList();
+            const targetPost = allPost.find(p=>p.id === pid);
+            targetPost.comments.splice(comIdx,1);
+            await updatePost(pid, {comments:targetPost.comments});
+            await renderPost();
+        }
+    })
 }
-function bindPostEvent(){
-    document.querySelectorAll('.post-del').forEach(btn=>{
-        btn.onclick = function(){
-            let pid = this.dataset.postidx;
-            let list = getPostList();
-            list.splice(pid,1);savePostList(list);renderPost();renderMinePage();
-        }
-    })
-    document.querySelectorAll('.send-comment').forEach(btn=>{
-        btn.onclick = function(){
-            const pid = this.dataset.pid;
-            const textInput = this.parentElement.querySelector('.com-text');
-            const ctext = textInput.value.trim();
-            if(!ctext){alert("评论内容不能为空！");return;}
-            let allPost = getPostList();
-            let targetPost = allPost[pid];
-            if(!targetPost.comments) targetPost.comments = [];
-            const floorNum = targetPost.comments.length + 1;
-            const now = new Date();
-            const timeStr = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${now.getHours()}:${now.getMinutes()}`;
-            targetPost.comments.push({user: loginUser.name,text: ctext,time: timeStr,floor: floorNum});
-            savePostList(allPost);renderPost();renderMinePage();
-        }
-    })
-    document.querySelectorAll('.del-comment').forEach(btn=>{
-        btn.onclick = function(){
-            const pid = this.dataset.post;
-            const cid = this.dataset.com;
-            let allPost = getPostList();
-            let comments = allPost[pid].comments;
-            comments.splice(cid,1);
-            comments.forEach((item,i)=>{item.floor = i + 1;})
-            savePostList(allPost);renderPost();renderMinePage();
-        }
-    })
+// 发帖弹窗
+openPostModal.onclick = ()=> postMask.style.display = 'flex';
+closePostModal.onclick = ()=>{
+    postMask.style.display = 'none';
+    postText.value = "";
 }
-openPostModal.addEventListener('click',()=>postMask.style.display = 'flex');
-closePostModal.addEventListener('click',()=>{postMask.style.display = 'none';postText.value = '';})
-submitPost.addEventListener('click',()=>{
-    let content = postText.value.trim();
-    if(!content){alert('帖子内容不能为空！');return;}
-    const now = new Date();
-    const time = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${now.getHours()}`;
-    const arr = getPostList();
-    arr.unshift({user: loginUser.name,content,time,comments: []});
-    savePostList(arr);
-    postMask.style.display = 'none';postText.value = '';
-    renderPost();renderMinePage();
-})
+submitPost.onclick = async function(){
+    if(!loginUser) return alert("请先登录");
+    const content = postText.value.trim();
+    if(!content) return alert("帖子内容不能为空");
+    const now = new Date().toLocaleString();
+    await addPost({
+        user_name: loginUser.name,
+        content,
+        time: now,
+        comments: []
+    });
+    postMask.style.display = 'none';
+    postText.value = "";
+    await renderPost();
+    await renderMinePage();
+}
 
-// ====================== 个人中心渲染（自己） ======================
-function renderMinePage(){
+// ========== 个人中心渲染 ==========
+async function renderMinePage(){
     if(!loginUser) return;
-    renderMineGame();renderMinePost();renderMineComment();
-}
-// 我的帖子
-function renderMinePost(){
-    const minePostBox = document.getElementById('minePostBox');
-    minePostBox.innerHTML = '';
-    const allPost = getPostList();
-    const myPostList = allPost.filter(p=>p.user === loginUser.name);
-    if(myPostList.length===0){
-        minePostBox.innerHTML = '<div class="empty-tip">你还没有发布任何帖子</div>';
-        return;
-    }
-    myPostList.forEach((postItem,postIndex)=>{
-        const realIdx = allPost.findIndex(p=>p.user===loginUser.name&&p.content===postItem.content&&p.time===postItem.time);
-        let commentHtml = '';
-        const commentArr = postItem.comments || [];
-        commentArr.forEach((com,comIdx)=>{
-            commentHtml += `
-                <div class="comment-item">
-                    <div class="comment-top">
-                        <span><span class="floor">${com.floor}楼</span> <span class="comment-user">${com.user}</span></span>
-                        <span>${com.time}</span>
+    mineTabs.forEach(t=>t.onclick = function(){
+        mineTabs.forEach(i=>i.classList.remove('active'));
+        this.classList.add('active');
+        const tab = this.dataset.tab;
+        mineContents.forEach(c=>c.classList.remove('show'));
+        document.getElementById(`mine${tab.charAt(0).toUpperCase()+tab.slice(1)}Box`).classList.add('show');
+    })
+    // 我的游戏
+    mineGameBox.innerHTML = "";
+    const allGame = await getGameList();
+    const myGame = allGame.filter(g=>g.author === loginUser.name);
+    if(myGame.length === 0){
+        mineGameBox.innerHTML = '<div class="empty-tip">你还没有发布游戏</div>';
+    }else{
+        myGame.forEach(item=>{
+            const card = document.createElement('div');
+            card.className = 'game-card';
+            card.innerHTML = `
+                <img class="card-img" src="${item.img || 'https://picsum.photos/id/237/300/160'}">
+                <div class="card-info">
+                    <div class="card-name">${item.name}</div>
+                    <div style="display:flex;gap:4px;">
+                        <button class="mine-edit-btn" data-id="${item.id}">编辑</button>
+                        <button class="del-btn" data-id="${item.id}">删除</button>
                     </div>
-                    <div class="comment-text">${com.text}</div>
                 </div>
             `;
+            card.onclick = (e)=>{
+                if(e.target.classList.contains('mine-edit-btn') || e.target.classList.contains('del-btn')) return;
+                openPlayGame(item.url);
+            }
+            mineGameBox.appendChild(card);
         })
-        const div = document.createElement('div');
-        div.className = 'post-item';
-        div.innerHTML = `
-            <div class="post-head">
-                <span class="post-name">我的帖子</span>
-                <span>${postItem.time}</span>
-            </div>
-            <div class="post-content">${postItem.content}</div>
-            <button class="post-del" data-mypostidx="${realIdx}">删除整篇帖子</button>
-            <div class="comment-wrap">
-                <div class="comment-title">帖子评论</div>
-                <div class="comment-list">${commentHtml || '<div style="color:#aaa;">暂无评论</div>'}</div>
-            </div>
-        `;
-        minePostBox.appendChild(div);
-    })
-    minePostBox.querySelectorAll('.post-del').forEach(btn=>{
-        btn.onclick = function(){
-            const ridx = this.dataset.mypostidx;
-            const all = getPostList();
-            all.splice(ridx,1);savePostList(all);renderPost();renderMinePage();
-        }
-    })
-}
-// 我的评论
-function renderMineComment(){
-    const mineCommentBox = document.getElementById('mineCommentBox');
-    mineCommentBox.innerHTML = '';
-    const allPost = getPostList();
+        // 编辑删除按钮复用逻辑
+        document.querySelectorAll('.mine-edit-btn').forEach(btn=>{
+            btn.onclick = async function(e){
+                e.stopPropagation();
+                const gameId = Number(this.dataset.id);
+                const allGame = await getGameList();
+                const target = allGame.find(g=>g.id === gameId);
+                editGameId.value = gameId;
+                editGameName.value = target.name;
+                editGameUrl.value = target.url;
+                editGameImg.value = target.img || "";
+                editGameMask.style.display = 'flex';
+            }
+        })
+        document.querySelectorAll('.mine-game-box .del-btn').forEach(btn=>{
+            btn.onclick = async function(e){
+                e.stopPropagation();
+                const gameId = Number(this.dataset.id);
+                if(!confirm("删除该游戏？")) return;
+                await deleteGame(gameId);
+                await renderMinePage();
+                await renderGame();
+            }
+        })
+    }
+    // 我的帖子
+    minePostBox.innerHTML = "";
+    const allPost = await getPostList();
+    const myPost = allPost.filter(p=>p.user === loginUser.name);
+    if(myPost.length === 0){
+        minePostBox.innerHTML = '<div class="empty-tip">你还没有发布帖子</div>';
+    }else{
+        myPost.forEach(item=>{
+            const postDom = document.createElement('div');
+            postDom.className = 'post-item';
+            postDom.innerHTML = `
+                <div class="post-head">
+                    <span>我</span>
+                    <span>${item.time}</span>
+                </div>
+                <div class="post-content">${item.content}</div>
+                <button class="del-post-btn" data-id="${item.id}">删除帖子</button>
+            `;
+            minePostBox.appendChild(postDom);
+        })
+        document.querySelectorAll('#minePostBox .del-post-btn').forEach(btn=>{
+            btn.onclick = async function(){
+                const pid = Number(this.dataset.id);
+                if(!confirm("删除帖子？")) return;
+                await deletePost(pid);
+                await renderMinePage();
+                await renderPost();
+            }
+        })
+    }
+    // 我的评论
+    mineCommentBox.innerHTML = "";
     let myCommentList = [];
-    allPost.forEach((post,pIdx)=>{
-        if(!post.comments) return;
-        post.comments.forEach((com,cIdx)=>{
+    allPost.forEach(post=>{
+        post.comments.forEach((com,idx)=>{
             if(com.user === loginUser.name){
-                myCommentList.push({postIndex:pIdx,comment:cIdx,postContent:post.content,com});
+                myCommentList.push({
+                    postId: post.id,
+                    postContent: post.content.slice(0,60),
+                    comment: com,
+                    comIndex: idx
+                })
             }
         })
     })
-    if(myCommentList.length===0){
-        mineCommentBox.innerHTML = '<div class="empty-tip">你还没有发表任何评论</div>';
-        return;
-    }
-    myCommentList.forEach(item=>{
-        const div = document.createElement('div');
-        div.className = 'my-comment-item';
-        div.innerHTML = `
-            <div class="my-comment-post-info">原帖内容：${item.postContent.slice(0,60)}${item.postContent.length>60?'...':''}</div>
-            <div>我的评论 <span class="floor">${item.com.floor}楼</span> ${item.com.time}</div>
-            <div class="my-comment-text">${item.com.text}</div>
-            <button class="del-btn" data-p="${item.postIndex}" data-c="${item.comment}">删除这条评论</button>
-        `;
-        mineCommentBox.appendChild(div);
-    })
-    mineCommentBox.querySelectorAll('.del-btn').forEach(btn=>{
-        btn.onclick = function(){
-            const p = this.dataset.p;
-            const c = this.dataset.c;
-            const all = getPostList();
-            all[p].comments.splice(c,1);
-            all[p].comments.forEach((cm,i)=>cm.floor=i+1);
-            savePostList(all);renderPost();renderMinePage();
-        }
-    })
-}
-
-// ====================== 他人用户主页（搜索跳转专用，无评论） ======================
-let targetOtherUserName = "";
-function openOtherUserPage(userName){
-    targetOtherUserName = userName;
-    document.getElementById("otherUserName").innerText = userName;
-    // 隐藏全部原有页面
-    homePage.style.display = 'none';
-    playPage.style.display = 'none';
-    forumPage.style.display = 'none';
-    minePage.style.display = 'none';
-    otherUserPage.style.display = 'block';
-    renderOtherUserPage();
-}
-function renderOtherUserPage(){
-    renderOtherGame(targetOtherUserName);
-    renderOtherPost(targetOtherUserName);
-}
-// 他人帖子
-function renderOtherPost(userName){
-    otherPostBox.innerHTML = '';
-    const allPost = getPostList();
-    const userPost = allPost.filter(p=>p.user === userName);
-    if(userPost.length===0){
-        otherPostBox.innerHTML = '<div class="empty-tip">该用户没有发布帖子</div>';
-        return;
-    }
-    userPost.forEach(postItem=>{
-        let commentHtml = '';
-        const commentArr = postItem.comments || [];
-        commentArr.forEach(com=>{
-            commentHtml += `
+    if(myCommentList.length === 0){
+        mineCommentBox.innerHTML = '<div class="empty-tip">你没有发布过评论</div>';
+    }else{
+        myCommentList.forEach(item=>{
+            const comDom = document.createElement('div');
+            comDom.className = 'post-item';
+            comDom.innerHTML = `
+                <div style="color:#aaa;margin-bottom:8px;">原帖：${item.postContent}...</div>
                 <div class="comment-item">
                     <div class="comment-top">
-                        <span><span class="floor">${com.floor}楼</span> <span class="comment-user">${com.user}</span></span>
-                        <span>${com.time}</span>
+                        <span class="comment-user">我的评论</span>
+                        <span>${item.comment.time}</span>
+                        <span class="del-comment" data-postid="${item.postId}" data-comidx="${item.comIndex}">删除</span>
                     </div>
-                    <div class="comment-text">${com.text}</div>
+                    <div>${item.comment.content}</div>
                 </div>
             `;
+            mineCommentBox.appendChild(comDom);
         })
-        const div = document.createElement('div');
-        div.className = 'post-item';
-        div.innerHTML = `
-            <div class="post-head">
-                <span class="post-name">用户：${userName}</span>
-                <span>${postItem.time}</span>
-            </div>
-            <div class="post-content">${postItem.content}</div>
-            <div class="comment-wrap">
-                <div class="comment-title">帖子评论</div>
-                <div class="comment-list">${commentHtml || '<div style="color:#aaa;">暂无评论</div>'}</div>
-            </div>
-        `;
-        otherPostBox.appendChild(div);
-    })
+        document.querySelectorAll('#mineCommentBox .del-comment').forEach(el=>{
+            el.onclick = async function(){
+                const pid = Number(this.dataset.postid);
+                const cidx = Number(this.dataset.comidx);
+                const allPost = await getPostList();
+                const target = allPost.find(p=>p.id === pid);
+                target.comments.splice(cidx,1);
+                await updatePost(pid, {comments:target.comments});
+                await renderMinePage();
+                await renderPost();
+            }
+        })
+    }
 }
 
-// ====================== 全屏搜索页面交互逻辑 ======================
-// 打开全屏搜索层
+// ========== 他人用户主页渲染（搜索跳转） ==========
+async function openOtherUserPage(userName){
+    targetOtherUserName = userName;
+    otherUserNameDom.innerText = userName;
+    homePage.style.display = 'none';
+    forumPage.style.display = 'none';
+    minePage.style.display = 'none';
+    playPage.style.display = 'none';
+    otherUserPage.style.display = 'block';
+    // 标签切换
+    otherTabs.forEach(t=>t.onclick = function(){
+        otherTabs.forEach(i=>i.classList.remove('active'));
+        this.classList.add('active');
+        const tab = this.dataset.tab;
+        otherContents.forEach(c=>c.classList.remove('show'));
+        document.getElementById(`other${tab.charAt(0).toUpperCase()+tab.slice(1)}Box`).classList.add('show');
+    })
+    // 他人游戏
+    otherGameBox.innerHTML = "";
+    const allGame = await getGameList();
+    const userGame = allGame.filter(g=>g.author === userName);
+    if(userGame.length === 0){
+        otherGameBox.innerHTML = '<div class="empty-tip">该用户暂无发布游戏</div>';
+    }else{
+        userGame.forEach(item=>{
+            const card = document.createElement('div');
+            card.className = 'game-card';
+            card.innerHTML = `
+                <img class="card-img" src="${item.img || 'https://picsum.photos/id/237/300/160'}">
+                <div class="card-info">
+                    <div class="card-name">${item.name}</div>
+                    <div class="card-author">发布者：${userName}</div>
+                </div>
+            `;
+            card.onclick = ()=> openPlayGame(item.url);
+            otherGameBox.appendChild(card);
+        })
+    }
+    // 他人帖子
+    otherPostBox.innerHTML = "";
+    const allPost = await getPostList();
+    const userPost = allPost.filter(p=>p.user === userName);
+    if(userPost.length === 0){
+        otherPostBox.innerHTML = '<div class="empty-tip">该用户暂无发布帖子</div>';
+    }else{
+        userPost.forEach(item=>{
+            const postDom = document.createElement('div');
+            postDom.className = 'post-item';
+            postDom.innerHTML = `
+                <div class="post-head">
+                    <span class="post-author">${userName}</span>
+                    <span>${item.time}</span>
+                </div>
+                <div class="post-content">${item.content}</div>
+            `;
+            otherPostBox.appendChild(postDom);
+        })
+    }
+}
+
+// ========== 全屏搜索页面交互逻辑 ==========
 function openSearchPage() {
     searchPageOverlay.style.display = "flex";
     searchInputOverlay.value = searchInput.value.trim();
@@ -663,62 +671,59 @@ function openSearchPage() {
     const key = searchInputOverlay.value.trim();
     if (key) doSearchOverlay(key);
 }
-// 关闭全屏搜索层
 function closeSearchPageFunc() {
     searchPageOverlay.style.display = "none";
     searchResultBoxOverlay.innerHTML = "";
     searchInputOverlay.value = "";
 }
-// 首页搜索按钮点击
-searchBtn.onclick = function(){
-    openSearchPage();
-}
+// 首页搜索按钮
+searchBtn.onclick = openSearchPage;
 searchInput.onkeydown = function(e){
     if(e.key === "Enter") openSearchPage();
 }
-// 关闭搜索按钮
 closeSearchPage.onclick = closeSearchPageFunc;
-// 搜索层内搜索按钮
-searchBtnOverlay.onclick = function(){
+// 搜索层内搜索
+searchBtnOverlay.onclick = async function(){
     const key = searchInputOverlay.value.trim();
     if(!key){
         searchResultBoxOverlay.innerHTML = "<div style='color:#aaa;'>请输入搜索关键词</div>";
         return;
     }
-    doSearchOverlay(key);
+    await doSearchOverlay(key);
 }
-searchInputOverlay.onkeydown = function(e){
+searchInputOverlay.onkeydown = async function(e){
     if(e.key === "Enter"){
         const key = searchInputOverlay.value.trim();
         if(!key){
             searchResultBoxOverlay.innerHTML = "<div style='color:#aaa;'>请输入搜索关键词</div>";
             return;
         }
-        doSearchOverlay(key);
+        await doSearchOverlay(key);
     }
 }
-// 搜索分类标签切换
+// 搜索标签切换
 searchTabsOverlay.forEach(tab=>{
-    tab.onclick = function(){
+    tab.onclick = async function(){
         searchTabsOverlay.forEach(t=>t.classList.remove('active'));
         this.classList.add('active');
         currentSearchType = this.dataset.type;
         const key = searchInputOverlay.value.trim();
-        if(key) doSearchOverlay(key);
+        if(key) await doSearchOverlay(key);
         else searchResultBoxOverlay.innerHTML = "";
     }
 })
-// 执行搜索（全屏层专用）
-function doSearchOverlay(keyword){
+// 云端搜索逻辑
+async function doSearchOverlay(keyword){
     const key = keyword.toLowerCase();
     searchResultBoxOverlay.innerHTML = "";
     if(currentSearchType === "game"){
-        const gameList = getGameList().filter(g=>g.name.toLowerCase().includes(key));
-        if(gameList.length === 0){
+        const allGame = await getGameList();
+        const filter = allGame.filter(g=>g.name.toLowerCase().includes(key));
+        if(filter.length === 0){
             searchResultBoxOverlay.innerHTML = "<div style='color:#aaa;'>未找到相关游戏</div>";
             return;
         }
-        gameList.forEach(game=>{
+        filter.forEach(game=>{
             const item = document.createElement("div");
             item.className = "search-item";
             item.innerHTML = `
@@ -726,18 +731,19 @@ function doSearchOverlay(keyword){
                 <div style="font-size:13px;color:#aaa;">发布者：${game.author}</div>
             `;
             item.onclick = ()=>{
-                const newTab = window.open();
-                newTab.document.write(`<iframe style="width:100%;height:100vh;border:none;" src="${game.url}"></iframe>`);
+                closeSearchPageFunc();
+                openPlayGame(game.url);
             }
             searchResultBoxOverlay.appendChild(item);
         })
     }else if(currentSearchType === "post"){
-        const postList = getPostList().filter(p=>p.content.toLowerCase().includes(key) || p.user.toLowerCase().includes(key));
-        if(postList.length === 0){
+        const allPost = await getPostList();
+        const filter = allPost.filter(p=>p.content.toLowerCase().includes(key) || p.user.toLowerCase().includes(key));
+        if(filter.length === 0){
             searchResultBoxOverlay.innerHTML = "<div style='color:#aaa;'>未找到相关帖子</div>";
             return;
         }
-        postList.forEach(post=>{
+        filter.forEach(post=>{
             const item = document.createElement("div");
             item.className = "search-item";
             item.innerHTML = `
@@ -747,19 +753,20 @@ function doSearchOverlay(keyword){
             item.onclick = ()=>{
                 closeSearchPageFunc();
                 const newTab = window.open(location.href);
-                newTab.onload = function(){
+                newTab.onload = ()=>{
                     newTab.document.querySelector('[data-page="forum"]').click();
                 }
             }
             searchResultBoxOverlay.appendChild(item);
         })
     }else if(currentSearchType === "user"){
-        const userList = getUserList().filter(u=>u.name.toLowerCase().includes(key));
-        if(userList.length === 0){
+        const userList = await getUserList();
+        const filter = userList.filter(u=>u.name.toLowerCase().includes(key));
+        if(filter.length === 0){
             searchResultBoxOverlay.innerHTML = "<div style='color:#aaa;'>未找到相关用户</div>";
             return;
         }
-        userList.forEach(user=>{
+        filter.forEach(user=>{
             const item = document.createElement("div");
             item.className = "search-item";
             item.innerHTML = `
@@ -775,6 +782,15 @@ function doSearchOverlay(keyword){
     }
 }
 
-// 初始化页面
-updateUserUI();
-renderGame();
+// ========== 全局刷新页面 ==========
+async function refreshAllPage(){
+    refreshLoginBtnState();
+    await renderGame();
+    await renderPost();
+}
+
+// ========== 页面初始化 ==========
+(async function init(){
+    refreshLoginBtnState();
+    await renderGame();
+})();

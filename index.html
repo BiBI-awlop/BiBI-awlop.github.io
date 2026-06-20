@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>test</title>
     <link rel="stylesheet" href="./css/style.css">
+    <!-- Supabase云端数据库SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <!-- 全屏搜索结果覆盖层（点击搜索后仅显示这个，遮挡原有页面） -->
@@ -88,7 +90,7 @@
         <div class="mine-content" id="mineCommentBox"></div>
     </div>
 
-    <!-- 他人用户主页（搜索跳转专用，无评论标签） -->
+    <!-- 他人用户主页（搜索跳转，无评论面板） -->
     <div class="other-user-page" style="display:none;">
         <h2 style="margin-bottom:20px;color:#00d4ff;">用户：<span id="otherUserName"></span></h2>
         <div class="mine-tab-bar">
@@ -150,8 +152,8 @@
                 <input type="text" id="gameUrl" placeholder="https://xxx/game.html">
             </div>
             <div class="item">
-                <label>封面图片链接(可选)</label>
-                <input type="text" id="gameImg" placeholder="图片在线地址，不填使用默认图">
+                <label>封面图片链接(选填)</label>
+                <input type="text" id="gameImg" placeholder="留空使用默认图">
             </div>
             <div class="modal-btns">
                 <button class="cancel" id="closeModal">取消</button>
@@ -164,14 +166,14 @@
     <div class="mask" id="editGameMask">
         <div class="modal">
             <h2>编辑游戏信息</h2>
-            <input type="hidden" id="editGameIndex">
+            <input type="hidden" id="editGameId">
             <div class="item">
                 <label>游戏名称</label>
                 <input type="text" id="editGameName" placeholder="输入游戏名称">
             </div>
             <div class="item">
                 <label>游戏网页地址(url)</label>
-                <input type="text" id="editGameUrl" placeholder="游戏链接/本地相对路径">
+                <input type="text" id="editGameUrl" placeholder="游戏链接/本地路径">
             </div>
             <div class="item">
                 <label>封面图片链接</label>
