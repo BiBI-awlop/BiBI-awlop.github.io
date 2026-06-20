@@ -31,7 +31,7 @@ body {
 .reg-btn{background:#34c759;color:#000;}
 .logout-btn{background:#ff4757;color:#fff;display:none;}
 
-/* 搜索模块 */
+/* 首页搜索模块 */
 .search-wrap{
     display:flex;
     gap:8px;
@@ -92,7 +92,7 @@ body {
     font-weight:bold;
 }
 
-/* 全屏搜索覆盖层 */
+/* 全屏搜索结果覆盖层（核心优化样式） */
 .search-page-overlay {
     position: fixed;
     top: 0;
@@ -154,8 +154,7 @@ body {
     background: #333;
     color: #fff;
 }
-
-/* 个人中心标签 */
+/* 个人/他人中心标签 */
 .mine-tab-bar{
     display:flex;gap:10px;margin-bottom:20px;
 }
@@ -165,7 +164,6 @@ body {
 .mine-tab.active{background:#00d4ff;color:#000;font-weight:bold;}
 .mine-content{display:none;}
 .mine-content.show{display:block;}
-
 h1 {
     font-size: 32px;
     color: #00d4ff;
@@ -236,10 +234,8 @@ h1 {
     border-radius:4px;
     color:#000;
     cursor:pointer;
-    margin-right:6px;
 }
 .edit-game-btn:disabled{background:#555;cursor:not-allowed;color:#aaa;}
-
 /* 弹窗通用 */
 .mask {
     position: fixed;
@@ -309,8 +305,7 @@ h1 {
     font-weight: bold;
     font-size: 15px;
 }
-
-/* 游戏播放页 */
+/* 游戏游玩页 */
 .play-page {
     display: none;
 }
@@ -342,6 +337,7 @@ iframe {
 .forum-page {
     display: none;
 }
+.mine-page,.other-user-page{display:none;}
 .forum-top {
     display: flex;
     justify-content: space-between;
@@ -358,6 +354,7 @@ iframe {
     cursor: pointer;
 }
 .post-btn:disabled{background:#666;cursor:not-allowed;color:#aaa;}
+/* 帖子容器 */
 .post-item {
     background: #16213e;
     padding: 20px;
@@ -370,7 +367,7 @@ iframe {
     margin-bottom: 12px;
     color: #999;
 }
-.post-author {
+.post-name {
     color: #00d4ff;
     font-weight: bold;
 }
@@ -379,16 +376,17 @@ iframe {
     font-size: 16px;
     margin-bottom: 15px;
 }
-.del-post-btn {
+.post-del {
     padding:5px 12px;
     background:#ff4757;
     border:none;
     color:#fff;
     border-radius:4px;
     cursor:pointer;
-    margin-bottom:20px;
+    margin-bottom: 20px;
 }
-.del-post-btn:disabled{background:#555;cursor:not-allowed;}
+.post-del:disabled{background:#555;cursor:not-allowed;}
+/* 评论区样式 */
 .comment-wrap {
     border-top: 1px solid #333;
     padding-top: 15px;
@@ -402,7 +400,7 @@ iframe {
     display: flex;
     gap:8px;
     margin-bottom:15px;
-    flex-wrap:wrap;
+    flex-wrap: wrap;
 }
 .comment-input-box input {
     padding:8px;
@@ -410,7 +408,7 @@ iframe {
     border:none;
     color:#000;
 }
-.send-comment-btn {
+.send-comment {
     padding:8px 14px;
     background:#00d4ff;
     border:none;
@@ -418,7 +416,8 @@ iframe {
     cursor:pointer;
     font-weight:bold;
 }
-.send-comment-btn:disabled{background:#666;cursor:not-allowed;color:#aaa;}
+.send-comment:disabled{background:#666;cursor:not-allowed;color:#aaa;}
+/* 单条评论 */
 .comment-item {
     background:#1f2b48;
     padding:10px 14px;
@@ -432,12 +431,25 @@ iframe {
     font-size:14px;
     color:#aaa;
 }
-.comment-user {
+.floor {
     color:#00d4ff;
     font-weight:bold;
+}
+.comment-user {
+    color:#fff;
+}
+.comment-text {
+    line-height:1.6;
 }
 .del-comment {
     font-size:12px;
     color:#ff6b77;
     cursor:pointer;
 }
+.del-comment:disabled{color:#555;cursor:not-allowed;}
+/* 我的评论单独条目 */
+.my-comment-item{
+    background:#16213e;padding:16px;border-radius:8px;margin-bottom:12px;
+}
+.my-comment-post-info{color:#00d4ff;margin-bottom:8px;}
+.my-comment-text{background:#1f2b48;padding:8px;border-radius:4px;margin:8px 0;}
